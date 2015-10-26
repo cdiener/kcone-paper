@@ -1,3 +1,6 @@
+![paper status](https://img.shields.io/badge/paper-under_review-yellow.svg)
+[![protocol status](https://img.shields.io/badge/protocol-online-green.svg)](https://cdiener.github.io/kcone-paper)
+
 ## Materials and Protocol for the k-cone paper
 
 Full citation still pending. This repository contains all materials in order
