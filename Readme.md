@@ -35,8 +35,8 @@ steps:
 - stability analysis for all of the 6 basis (stab.Rd)
 
 For the sake of completeness we also provide the pathway image we use in the
-paper as [Inkscape](https://inkscape.org) SVGs. **This image is licensed under 
-the [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).**
+paper as [Inkscape](https://inkscape.org) SVGs in the images folder. 
+**This image is licensed under the [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).**
 
 ### Reproducing the paper
 
