@@ -3,7 +3,7 @@
 Full citation still pending. This repository contains all materials in order
 to reproduce *all* results from our publication. You can either create a detailed
 computational protocol from an [Rmarkdown](http://rmarkdown.rstudio.com/) file
-or just run an [R](http://r-project.org) to reproduce the results.
+or just run an [R](http://r-project.org) script to reproduce the results.
 
 The output can be found at https://cdiener.github.io/kcone-paper.
 
