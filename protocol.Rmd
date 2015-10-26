@@ -1,0 +1,698 @@
+---
+title: "k-cone analysis protocol"
+author: "Christian Diener, Sergio Encarnación, Felipe Muñoz, Osbaldo Resendis"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    highlight: default
+    theme: flatly
+  pdf_document:
+    latex_engine: lualatex
+    dev: cairo_pdf
+---
+
+Protocol: k-cone analysis of HeLa cells
+========================================
+
+## Installation
+
+All of the analysis is performed in R. As such the first thing you will need 
+is to install R. For installation instructions see http://r-project.org. In
+Ubuntu and Debian R can be installed via the Terminal using
+
+```{bash eval=FALSE}
+sudo apt-get install r-base r-base-dev
+```
+
+Additionally some of the dependencies of `dycone` require development versions
+of some libraries for web security and scraping. In Ubuntu and Debian those can
+be installed via
+
+```{bash eval=FALSE}
+sudo apt-get install libxml2-dev libcurl4-openssl-dev libssl-dev libgmp-dev
+```  
+
+Most of the actual analysis is implemented in the `dycone` R package. It can be
+installed using devtools in the following manner. We will also intall all 
+optional dependencies so we can build this document. In a Terminal type `R` to 
+start R, than use the following commands:
+
+```{r eval=FALSE}
+install.packages("devtools")
+source("http://bioconductor.org/biocLite.R")
+biocLite(c("Biobase", "IRanges", "AnnotationDbi", "affy", "frma", "genefilter", 
+    "GEOquery", "hgu133plus2.db", "hgu133plus2frmavecs", "limma"))
+devtools::install_github("cdiener/dycone", dependencies = TRUE)
+```
+
+This will install dycone and all additional dependencies. You will see at lot
+of messages from the compiler and the whole process might take a few minutes.
+After that the dycone library can be loaded with
+
+```{r}
+library(dycone)
+```
+
+## Reading the model and additional data
+
+Dycone models can be obtained by a variety since for most analysis an 
+irreversible stochiometric matrix is sufficient. However `dycone` uses an 
+internal representation which is a list of reactions. Here each list entry 
+requires at least the entries `S`, `P`, `N_S`, `N_P` and `reversible` (all 
+vectors) specifiying the names of substrates and products, the respsective 
+stochiometries and the reversibility of the reaction. Each reaction can 
+furtermore carry an arbitrary amount of annotations. Those models can be read
+from a csv-like file format. The model used in this analysis can be found 
+in "reactions.csv" and be read and output easily by
+
+```{r}
+library(dycone)
+
+r <- read_reactions("reactions.csv")
+print(r)
+```
+
+Looking at the first reaction we see the additional annotations
+
+```{r}
+r[[1]]
+```
+
+The metabolome measurements are found in in "metabolome.csv" (Table S1 in the 
+manuscript). Here "Rx" denotes repetition x and "He/Ha" the HeLa and HaCaT cell 
+lines. The measurements are given as pmol per million cells. First we will 
+convert those to micro-mole per litre by using the experimentally quantified 
+volume of HeLa cells (1.54 fL, http://doi.org/10.1002/nbm.1173).
+
+```{r}
+metab <- read.csv("metabolome.csv")
+# First 4 columns are annotations
+metab[, 5:10] <- 1e-6 * metab[, 5:10]/(1e6 * 1.54e-12)
+```
+
+As one can observe, there are several missing measurements (caused if 
+metabolite concentrations are below the detection limit) so we will now see how 
+to impute the missing values.
+
+
+The log-fold changes for all combinations between HeLa and HaCaT cells can be 
+obtained by
+
+```{r, fig.width=10, fig.height=5, warning=FALSE}
+library(tidyr)
+library(ggplot2)
+
+comb <- expand.grid(a = 1:3, b = 4:6)
+mlfc <- apply(metab[, 5:10], 1, function(m) log(m[comb$b], 2) - log(m[comb$a], 2))
+colnames(mlfc) <- as.character(metab$name)
+mlfc <- gather(data.frame(mlfc, check.names = F), name, lfc)
+ggplot(mlfc, aes(x = name, y = lfc)) + geom_boxplot() + theme_bw() + 
+	theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
+	xlab("") + ylab("log-fold change")
+```
+
+## Imputation of missing data
+
+At first we will try to see which metabolites in the model are missing in the
+measurements. For this we will first construct a data frame of all the subtrates
+and products in the model along with their KEGG compound IDs.
+
+```{r}
+subs <- cbind(rp(r, "S"), rp(r, "KEGG_substrates")[, 2])
+prods <- cbind(rp(r, "P"), rp(r, "KEGG_products")[, 2])
+names(subs) <- names(prods) <- c("idx", "name", "keggid")
+spec <- c(subs$name, prods$name)
+names(spec) <- c(as.character(subs$keggid), as.character(prods$keggid))
+```
+
+For easier usage we will convert this data frame into a list of unique 
+metabolites named by their respective KEGG ID.
+
+```{r}
+spec <- spec[!duplicated(spec)]
+```
+
+Now we will look for matches of the respective metabolites from the model
+in the metabolome measurements. Matching will be done based on KEGG IDs.
+
+```{r}
+matches <- sapply(names(spec), grep_or_na, x = metab$kegg_id)
+miss <- is.na(matches)
+kegg_missing <- names(spec)[miss]
+length(kegg_missing)/length(spec)
+```
+
+So we see we have measurements for about 2/3 of the required metabolites 
+(actually its a bit more since hydrogen was not measured but can be inferred 
+from the pH). To impute the missing values we will first construct a data frame 
+for all metbaolites with missing entries and see how to fill it in the 
+following steps.
+
+```{r}
+full <- data.frame(kegg = names(spec), name = spec)
+m <- matrix(NA, nrow = nrow(full), ncol = 6)
+colnames(m) <- names(metab)[5:10]
+full <- cbind(full, m)
+matched_idx <- !is.na(matches)
+full[matched_idx, 3:8] <- metab[matches[matched_idx], 5:10]
+```
+
+`full` now already included the metbaolome measurements but still has missing 
+entries which we will no scrape from the Human Metabolome Database (HMDB, 
+http://hmdb.ca). Unfortunately, HMDB included some errors in the assignment of 
+KEGG identifiers. A revised mapping of KEGG to HMDB identifiers for our model 
+can be read from "id_map.csv". For general usage `dycone` also provides the 
+`find_hmdb` function which can be used to query HMDB with arbitrary search 
+terms.
+
+```{r}
+id_map = read.csv("id_map.csv") 
+```
+
+We will now scrape the concentrations for all metbaolites in the model from 
+HMDB. This might take some time so we will use the caching operator
+`%c%` from dycone which will take an R expression and will cache all assigned
+variables in that expression to a cache file, so that rerunning the script will
+read the results from the cache and not rerun the analysis. To run the analysis
+again simply delete the cache file without changing any of the code.
+
+```{r}
+{
+    concs <- hmdb_concentration(id_map$hmdb, add = id_map[, 1:2])
+} %c% "scraped_concs.Rd"
+```
+
+We will now get the mean values for measured concentrations (HMDB quantifies
+almost all metbaolites by micro-moles per litre as well) by taking them from
+cytoplasm measurements where available, or blood as a fallback. (In any way those
+imputations will only be used for stability analysis and not for differential
+measurements. If one only wants to use the differential analysis of `dycone`
+you can simply substitute all NA values in `full` by any constant.)
+
+```{r}
+m_concs <- as.vector(by(concs, concs$kegg_revised, priority_mean))
+names(m_concs) <- levels(id_map$kegg_revised)
+```
+
+The concentration for free hydrogen can be obtained from the pH of HeLa cells
+measured as 7.34 (http://doi.org/10.1073/pnas.95.12.6803).
+
+```{r}
+# Based on pH in uM
+m_concs["C00080"] <- 10^(-7.34 + 6)
+```
+
+In order to fill the gaps in the `full` data set we will use the `patch` function
+from dycone. `patch` will first to attempt to fill any hole with measurements
+from the own data set, either by using the mean values of the same cell line
+or, if not available, by the mean value of the other cell line. Thus, giving
+priority to the local data before the scraped ones. Only measurements
+with missing entries in both cell lines are filled with the scraped mean 
+concentrations from HMDB.
+
+```{r}
+scraped <- data.frame(kegg = names(m_concs), normal = m_concs)
+rownames(scraped) <- NULL
+patched <- patch(full, id = 1, normal = 3:5, treatment = 6:8, ref_data = scraped)
+```
+
+This yields a complete data set `patched` which we will use for the dycone
+analysis.
+
+## The k-cone of HaCaT and HeLa cells
+
+As described in more detail in Supplementary Text S1 of the publication the
+k-cone of several metabolome measurement can be generated from a skeleton 
+flux cone. Thus, we will first calculate the flux cone for our model. This
+will several hours, so we will use the caching operator again to avoid 
+recalculating the flux cone everytime we run the analysis. For this we will
+need an irreversible stochiometric matrix which can be generated with the
+`stochiometry` function of `dycone`.
+
+```{r}
+S <- stochiometry(r)
+{ V <- polytope_basis(S) } %c% "basis.Rd"
+dim(V)
+```
+The flux cone has >100.000 basis vectors here.
+
+For the metabolic terms we use the mass-action terms generated from the imputated
+metbaolome measurements. This is sufficient to create the k-cones for the six
+measurements. `ma_terms` expects a single named vector of concentrations, or
+a data frame with a "name" column and several columns containing concentrations.
+
+```{r}
+mats <- ma_terms(S, patched[, -1])
+K <- lapply(1:6, function(i) kcone(V, mats[, i]))
+
+# Reaction names to annotate the axis
+rn = rp(make_irreversible(r), "abbreviation")[,2]
+```
+
+To visualize the k-cone we will use the `plot_red` function which first projects
+the high-diemnsional k-cone into the two dimension capturing the most variance,
+followed by clustering of the extreme rays of the cone to avoid repeatedly using
+rays that are very similar. The shaded area corresponds to the interior of the
+cone, so all feasible sets of kinetic constants fall into the shaded area of the
+respective k-cone. We will use blue for HaCaT cells and red for HeLa. 
+Since the used k-means clustering is not entirely deterministic the images here
+might look a bit different here than in the publication or be rotated along one
+of the two PC axes. However, the overall appearance of the cones should be the
+same.
+
+```{r, fig.width=6, fig.height=6}
+plot_red(K, col = c(rep(c("blue", "tomato2"), each=3)), r_names=rn)
+```
+
+As we can see there are only minor differences between the k-cones. To see the 
+proportion of the cone with large entries in the transformation matrices we will
+first calculate the log2-fold changes between all combinations of HeLa and HaCaT
+cells and only use those with an absolute log2-fold change larger than 1 (thus,
+a fold change larger than 2).
+
+```{r, fig.width=6, fig.height=6}
+combs <- expand.grid(4:6, 1:3)
+lfcs <- apply(combs, 1, function(i) log(mats[, i[2]], 2) - log(mats[, i[1]], 2))
+large <- abs(rowMeans(lfcs)) > 1 
+K_subset <- lapply(K, function(ki) ki[large, ])
+plot_red(K_subset, col = c(rep(c("blue", "tomato2"), each=3)), r_names=rn[large])
+```
+
+## Stability analysis
+
+To get the stability for an entire k-cone we need to run a stability analysis
+for each basis vector of the k-cone. Since we have 6 k-cones with over 100.000
+basis vectors each this will take a while. In order to accellerate this, we 
+again use the caching opearator and will also employ the `doParallel` package
+to run the analysis for each k-cone in parallel. If you have less than 6 CPU
+cores adjust the option accordingly or simply do not setup the cluster which
+will cause the code to run on a single core.
+
+```{r}
+# this part is optional
+library(doParallel)
+registerDoParallel(cl = 6)
+# end of optional part
+
+{
+    stab <- foreach(i = 1:6, .combine = rbind) %dopar% {
+        concs <- patched[, 2 + i]
+        names(concs) <- patched$name
+        s <- stability_analysis(kcone(V, mats[, i]), S, concs)$what
+        data.frame(what = s, basis_idx = i)
+    }
+} %c% "stab.Rd"
+```
+
+Now we will assign the cell line to each output and plot the counts for
+the individual stability types.
+
+```{r}
+library(ggplot2)
+
+cell_line <- rep(c("HaCaT", "HeLa"), each = 3)
+stab$cell_line <- factor(cell_line[stab$basis_idx], levels = c("HaCaT", "HeLa"))
+ggplot(stab, aes(x = what, fill = cell_line, group = basis_idx)) + 
+	stat_bin(position = "dodge", col = "black") + 
+	scale_fill_manual(values = c("royalblue", "red3")) + theme_bw()
+```
+
+## Regulatory bias
+
+The statistical tests used in `dycone` assume a log-normal distribution of the
+metabolic terms. It is sufficient to show an approximate normal distribution for
+the log-transformed metbaolite measurements since the log-transform of the 
+metabolic terms is a weighted sum of the logarithmic metabolite measurements for
+most of the common kinetics (such as mass-action, Michalis-Menten and Hill).
+We will compare distribution to a normal one via quantile-quantile plots and
+the empirical distriution of the data. 
+
+```{r, fig.height=5, fig.width=9}
+log_all <- log(metab[, 5:10], 2)
+colnames(log_all) <- c(paste0("HaCaT_", 1:3), paste0("HeLa_", 1:3))
+log_hacat <- unlist(log_all[, 1:3])
+log_hela <- unlist(unlist(log_all[, 4:6]))
+
+par(mfrow = 1:2)
+qqnorm(log_hacat, pch = 1, col = "royalblue", main = "")
+qqline(log_hacat, lwd = 2, col = "darkblue")
+points(qqnorm(log_hela, plot.it = F), pch = 2, col = "red3")
+qqline(log_hela, lwd = 2, col = "darkred")
+
+x <- seq(0, 16, length.out = 256)
+plot(ecdf(log_hacat), pch = 1, col = "royalblue", main = "")
+lines(x, pnorm(x, mean(log_hacat, na.rm = T), sd(log_hacat, na.rm = T)), lwd = 2,
+    col = "darkblue")
+plot(ecdf(log_hela), pch = 2, add = T, col = "red3")
+lines(x, pnorm(x, mean(log_hela, na.rm = T), sd(log_hela, na.rm = T)), lwd = 2,
+    col = "darkred")
+```
+
+The data is approximately normal in log-space so we can continue with the 
+analysis.
+
+We already calculated the log-fold changes before, but in order to also assign
+some statistics to that we can also use the function `hyp` from `dycone` which
+does that for us. It will generate all log-fold changes between a disease and
+normal measurements of metabolic terms and compare those to the log-fold changes
+within the normal group as a reference. The output will be sorted by increasing
+p-values and mean log-fold changes. We will also use the `full` option to obtain
+the raw log-fold changes. We will also append some additional annotations to the 
+result using the `rp` function.
+
+```{r}
+h <- hyp(mats[, 1:3], mats[, 4:6], r, full = T)
+pw <- rp(make_irreversible(r), "pathway")[,2]
+r_ids <- rp(make_irreversible(r), "KEGG_reaction")[,2]
+h$hyp <- cbind(h$hyp, pathway = pw[h$hyp$idx])
+h$hyp <- cbind(h$hyp, reaction_id = r_ids[h$hyp$idx])
+write.csv(h$hyp, file = "transform.csv", quote = F, row.names = F)
+```
+
+`h$hyp` now contains regulatory bias for enzyme activities for each reaction.
+
+```{r}
+head(h$hyp)
+```
+
+Those values are the basis for Figures 3 and 4.
+
+## Worst-case analysis via linear programming
+
+The analysis we will perform here is very similar to that in the previous 
+section, however, this time we will obtain the differential enzyme activities 
+by correcting for effects that can be caused by flux variation. For this we 
+will analyze the smallest and largest flux for each reaction that still allows 
+a given biomass/growth flux to operate at its optimum. Using `dycone` the only 
+explicit action required of the user is definition of the optimization 
+criterion. For this we will first define all metabolites which are precursors 
+for compunds required for proliferation. Each of those will be assigned a 
+weight which is obtained from the stochiometry of Recon 2 biomass reaction 
+(http://www.ebi.ac.uk/biomodels-main/MODEL1109130000). For the cases where one 
+metabolite is the precursor for several proliferation compounds we use the 
+maximum stochiometry from Recon 2. Negative stochiometries denote compounds
+that are consumed and positive stochiometries denote produced compunds. Here
+we only produce ADP and Pi to balance the ATP usage. The small difference in 
+the stochiometry (20.7045 vs 20.6508) in Recon 2 accounts for the ATP used
+during DNA replication.
+
+```{r}
+prolif <- c(atp = -20.7045, prpp = -0.053446, pyr = -0.50563, oaa = -0.35261, 
+    glu = -0.38587, cit = -0.15446, `3pg` = -0.39253, adp = 20.6508, 
+    pi = 20.6508)
+```
+
+As we can see there is a large requirement for ATP and amino acid precursors. Also
+the form here is not the only way to formulate an objective reaction. Please refer
+to the docuemntation of `fba` for alternative input forms.
+
+We can now use the `hyp` function again to generate hypotheses for 
+differentially regulated enzymes correcting for fold changes that can be 
+explained by flux variation. This time setting the type to "fva" which will 
+require defining the additional `v_opt` which defines the objective reaction. 
+The output will be same as before only with an additional column "fva_log_fold" 
+denoting the largest absolute fold-change that can be explained by flux 
+variability alone. We will also append additional annotations again and save 
+the output to a CSV file. This will solve a series of linear programming 
+problems (in our case more than 200). To accelaerate this a bit, `hyp` will 
+automatically execute those in parallel if you registered any of the backends 
+compatible with `foreach`. Since we already did that during the stability 
+analysis the following code will automatically run in parallel.
+
+```{r}
+# Generate hypothesis
+h <- hyp(mats[, 1:3], mats[, 4:6], r, type = "fva", obj = prolif, 
+    v_min = 1e-6, full = T)
+pw <- rp(make_irreversible(r), "pathway")[,2]
+r_ids <- rp(make_irreversible(r), "KEGG_reaction")[,2]
+h$hyp <- cbind(h$hyp, pathway = pw[h$hyp$idx])
+h$hyp <- cbind(h$hyp, reaction_id = r_ids[h$hyp$idx])
+write.csv(h$hyp, file = "regulatory_bias.csv", quote = F, row.names = F)
+```
+Let us use visualize those results to also compare the obtained regulations on a
+pathway level and mark reactions whose regulatory bias log-fold changes can not
+be explained by flux variability.
+
+```{r}
+ggplot(h$hyp, aes(y = pathway, x = mean_log_fold, col = pathway)) + 
+    geom_vline(x = 0, linetype = "dashed") + geom_point(aes(shape = abs(mean_log_fold) > fva_log_fold), 
+    position = position_jitter(height = 0.2), size = 3) + scale_shape_manual(values = c(1, 17)) + 
+    theme_bw() + theme(legend.position = "none") + xlab("mean log-fold change") + ylab("")
+```
+
+The full output of hyp now contains some additional information. One interesting
+one are the upper bounds for log-fold changes in the fluxes due to variation.
+
+```{r}
+print(h$lfc_va)
+```
+
+We can use those estimates to annotate each of the log-fold changes from the
+regulatory bias by the maximum log-fold change estimate from the FVA. Thus, marking
+reactions whose regulatory bias is essential for growth.
+
+```{r, fig.height=4, fig.width=17}
+library(pheatmap)
+x <- h$lfc_disease
+m <- max(range(x))
+ann <- data.frame("flux variability" = h$lfc_va, check.names = FALSE)
+pheatmap(t(x[h$hyp$idx, ]), breaks = seq(-m, m, length.out = 102), col = dycone:::DC_DIVCOL(101), 
+    cluster_rows = F, cluster_cols = F, cellwidth = 10, cellheight = 10, labels_col = h$hyp$name, 
+    annotation_col = ann, show_rownames = FALSE)
+```
+
+We can also identify significantly altered reactions which are essential directly.
+
+```{r}
+essential <- abs(h$hyp$mean_log_fold) > h$hyp$fva_log_fold
+h$hyp[h$hyp$corr_pval < 0.05 & essential, ]
+```
+
+Reactions that appear strongly regulated in this list can be interpreted as 
+necessary for the given proliferation objective, since there is no flux 
+distribution yielding optimal proliferation without those regulation events. 
+
+## Heterogeneity and co-regulation
+
+Cancer is known to be a very heterogenous disease. thus, we might ask what
+the variation in enzyme activities is within HaCaT and HeLa cells. The `hyp`
+output already calculates the standard deviations for the log-fold changes within
+HaCaT cells and between HeLa and HaCaT cells. So we can easily visualize those.
+
+```{r, fig.height=4, fig.width=7}
+ggplot(h$hyp, aes(x = sd_normal, y = sd_disease, col = pathway)) + 
+    geom_polygon(data = data.frame(x = c(0, 9, 9), y = c(0, 3, 27)), 
+    aes(x = x, y = y), fill = "blue", alpha = 0.1, col = NA) + geom_point() + 
+    theme_bw() + coord_cartesian(xlim = c(-0.1, 2), ylim = c(-0.1, 2)) + 
+    xlab(expression(HaCaT ~ sigma)) + ylab(expression(HeLa ~ sigma))
+```
+
+The shaded area correspond to a 3-fold change in both directions (lower and 
+higher) standard deviations. As we can see in the optimized estimates this 
+holds for most pathways, and only a few reactions show higher heterogeneity in 
+cancer (HeLa cells). Let us visualize the correlation between those reactions 
+to see whether they might be co-regulated.
+
+```{r, fig.height=4, fig.width=5}
+fc_sd <- h$hyp$sd_disease/h$hyp$sd_normal
+
+# We ignore fold changes with incomplete data (zero sd in one sample)
+sig <- fc_sd > 3 & is.finite(fc_sd)
+type <- paste0(h$hyp$name[sig], " (", h$hyp$type[sig], ")")
+d <- cor(t(h$lfc_disease[h$hyp$idx[sig], ]))
+pheatmap(d, col = dycone:::DC_DIVCOL(101), breaks = seq(-1, 1, length.out = 102), 
+    labels_row = type, labels_col = type)
+```
+
+## Comparison with gene expression data
+
+### Gene expression analysis
+
+We will start by reading a list containing IDs and cell lines for 58
+untreated samples from the [GEO database]()http://www.ncbi.nlm.nih.gov/geo/)
+and creating an ouptut directory for the downloaded data.
+
+```{r, warning=FALSE}
+sample_info <- read.csv("ge_samples.csv")
+dir.create("ma")
+``` 
+
+Since we might run this analysis several times we will first check whether 
+the data is already present and than download all missing data.
+
+```{r, results="hide"}
+library(affy, quietly=T)
+library(GEOquery, quietly=T)
+
+already_there <- dir.exists(paste0("ma/", as.character(sample_info$geoID)))
+file_info <- lapply(sample_info$geoID[!already_there], getGEOSuppFiles, baseDir="ma")
+```
+
+We will now look for all downloaded raw `.cel` files and also define "normal"
+and "disease" groups, where HaCaT and keratinocyte arrays will be treated as
+normal and the HeLa assay as disease.
+
+```{r}
+celfiles <- list.files("ma", pattern="*.cel*", recursive=T, ignore.case=T)
+names(celfiles) <- sapply(celfiles, dirname)
+condition <- rep.int("disease", length(celfiles))
+condition[sample_info$cell_line %in% c("HaCaT", "keratinocyte")] <- "normal"
+condition <- factor(condition)
+
+table(condition)
+```
+
+We will now read the compressed raw data files and assign the phenotype
+annotations (cell lines and condition).
+
+```{r}
+raw_data <- ReadAffy(filenames = paste0("ma/", celfiles[sample_info$geoID]),
+    compress=T)
+pData(raw_data)$cell_line <- sample_info$cell_line
+pData(raw_data)$condition <- condition
+```
+
+In order to make the data comparable across arrays we will normalize all of
+the 58 samples using frozen set RMA.
+
+```{r}
+library(frma, quietly=T)
+
+eset <- frma(raw_data)
+```
+
+We will follow this by a short quality control. For this we will check whether
+the normal and disease samples form condition-specific groups in their
+expression patterns. As a first try we will visualize the the gene expression
+patterns in the first two principal components.
+
+```{r}
+pca <- prcomp(t(exprs(eset)))
+sum(pca$sdev[1:2])/sum(pca$sdev)
+
+ggplot(data.frame(pca$x), aes(x=PC1, y=PC2)) + theme_bw() + 
+    geom_point(aes(col=condition, shape=sample_info$cell_line))
+```
+
+We can also quantify this by first clustering the 58 samples by their expression
+patterns into two clusters and check how well those two clusters correspond
+to the condition.
+
+```{r}
+cl <- kmeans(t(exprs(eset)), 2)
+normal_cluster <- cl$cluster[1] # first condition is normal
+cl_err <- sum(cl$cluster[condition == "normal"] != normal_cluster)/length(cl$cluster)
+cat(sprintf("Clustering error between normal/disease: %f%%\n", cl_err*100))
+```
+
+We will now try to find differentially expressed genes between the normal and
+disease condition. Since many probes on the array match to the same gene we will
+choose the probe for each gene which has the maximum mean expression across all
+58 samples. 
+
+```{r}
+library(genefilter, quietly=T)
+
+mean_max <- findLargest(rownames(eset), rowMeans(exprs(eset)))
+gset <- eset[mean_max, ]
+rownames(gset) <- as.character(hgu133plus2ENTREZID)[mean_max]
+cat(sprintf("Identified genes: %d\n", nrow(gset)))
+```
+
+Differential expression will be judged by a t-test where the sample variances
+are estimated using the empirical Bayes method from the `limma` package. 
+Finally, we will save the gene-wise log2-fold changes along with FDR-corrected
+p-values to an intermediate data file.
+
+```{r}
+library(limma, quietly=T, warn.conflicts=F)
+
+design <- model.matrix(~ 0 + condition)
+colnames(design) <- levels(condition)
+fit <- lmFit(gset, design)
+contrast.matrix <- makeContrasts(disease - normal, levels=design)
+cfit <- contrasts.fit(fit, contrast.matrix)
+ebfit <- eBayes(cfit)
+
+ma_lfcs <- topTable(ebfit, number=Inf)
+save(ma_lfcs, file="gene_expression.Rd")
+head(ma_lfcs)
+```
+
+## Comparison to regulatory bias
+
+We will start by mapping all the EC numbers of the reactions used in the model
+to its respective ENTREZ gene ids and names and saving that information into the 
+`info` data frame. Note that a single reaction might be associated to several
+EC numbers (isoenzymes for example) and every EC number might be associated with
+several genes.
+
+```{r}
+library(AnnotationDbi, quietly=TRUE)
+library(dplyr, quietly=TRUE, warn.conflicts=F)
+
+ecs <- rp(make_irreversible(r), "KEGG_enzyme")
+ens <- AnnotationDbi::select(hgu133plus2.db, keys = ecs[, 2], keytype = "ENZYME", 
+    columns = c("SYMBOL", "ENSEMBL", "ENTREZID"))
+load("gene_expression.Rd")
+info <- ecs %>% group_by(r_idx) %>% do(ens[ens$ENZYME %in% .$KEGG_enzyme,])
+```
+
+We will only use those EC numbers for which we could find a corresponding gene
+on the arrays.
+
+```{r}
+good <- sapply(info$ENTREZID, function(eid) !is.na(eid) & 
+    (eid %in% rownames(ma_lfcs)))
+cat(sprintf("%f%% of enzymes found on array.\n", sum(good)/length(good)*100))
+info <- info[good, ]
+```
+
+Now we will start adding the correponding log fold changes and p-values from
+the regulatory bias.
+
+```{r}
+info <- info %>% group_by(r_idx) %>% mutate(met_lfc = 
+    h$hyp$mean_log_fold[h$hyp$idx %in% r_idx], met_pval = 
+    h$hyp$corr_pval[h$hyp$idx %in% r_idx], pathway = 
+    h$hyp$pathway[h$hyp$idx %in% r_idx])
+```
+
+And, finally, we will add the log fold changes obtained from the microarrays
+along with their p-values. The fully assembled `info` data frame will be saved
+as a csv file.
+
+```{r}
+get_ma_lfc <- function(eid) {
+    found <- which(eid[1] == rownames(ma_lfcs))
+
+    return(data.frame(ge_lfc = ma_lfcs$logFC[found], 
+        ge_pval = ma_lfcs$adj.P.Val[found]))
+}
+    
+ge <- lapply(info$ENTREZID, get_ma_lfc)
+info <- cbind(info, do.call(rbind, ge))
+write.csv(info, "all_lfcs.csv")
+```
+
+First we will take a look how well the two measurements for enzyme activity
+coincide in their log fold changes. Significance in regulatory bias and gene
+expression is indicated by triangles.
+
+```{r, fig.width=6, fig.height=3}
+info$significant <- info$ge_pval<0.05 & info$met_pval<0.05
+ggplot(info, aes(x=ge_lfc, y=met_lfc, color=pathway,shape=significant)) + 
+    geom_hline(yintercept=0, linetype="dashed") + 
+    geom_vline(xintercept=0, linetype="dashed") + geom_point() + theme_bw() + 
+    xlab("gene expression") + scale_color_discrete(drop=FALSE) + 
+    ylab("metabolome")
+cor.test(info$met_lfc, info$ge_lfc)
+```
+
+So there is no correlation on a global level. However, looking at the changes
+that are significant in regulatory bias and gene expression we find some cases
+were gene expression influences the enzymatic activity.
+
+```{r}
+info[info$significant, ]
+```

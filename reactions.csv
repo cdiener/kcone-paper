@@ -1,0 +1,61 @@
+Reaction,abbreviation,pathway,KEGG_substrates,KEGG_products,KEGG_reaction,KEGG_enzyme
+13dpg <=> 23dpg,BPGM,Glycolysis,C00236,C01159,R01662,"5.4.2.4, 5.4.2.11"
+23dpg  -> 3pg + pi,BPGM,Glycolysis,C01159,"C00197, C00009",R01516,3.1.3.13
+2pg  <=> pep ,ENO,Glycolysis,C00631,C00074,R00658,4.2.1.11
+fdp  <=> dhap + g3p ,ALDO,Glycolysis,C00354,"C00111, C00118",R01068,4.1.2.13
+fdp -> f6p + pi ,FBP,Glycolysis,C00354,"C00085, C00009",R00762,3.1.3.11
+g3p + nad + pi  <=> 13dpg + h + nadh ,GAPDH,Glycolysis,"C00118, C00003, C00009","C00236, C00080, C00004",R01061,"1.2.1.12, 1.2.1.59"
+atp + f6p  -> adp + fdp,PFK,Glycolysis,"C00002, C00085","C00008, C00354",R00756,2.7.1.11
+g6p  <=> f6p ,GPI,Glycolysis,C00092,C00085,R00771,5.3.1.9
+13dpg -> h + pi + 3pg,ACYP,Glycolysis,C00236,"C00080, C00009, C00197",R01515,3.6.1.7
+3pg + atp <=> 13dpg + adp ,PGK,Glycolysis,"C00197, C00002","C00236, C00008",R01512,2.7.2.3
+2pg  <=> 3pg ,PGAM,Glycolysis,C00631,C00197,R01518,"5.4.2.11, 5.4.2.12"
+g1p  <=> g6p ,PGM,Glycolysis,C00103,C00092,R08639,"5.4.2.2, 5.4.2.5"
+adp + pep -> atp + pyr ,PKM,Glycolysis,"C00008, C00074","C00002, C00022",R00200,2.7.1.40
+dhap  <=> g3p ,TPI,Glycolysis,C00111,C00118,R01025,5.3.1.1
+nad + lac-L <=> h + nadh + pyr,LDH,Glycolysis,"C00003, C00186","C00080, C00004, C00022",R00703,1.1.1.27
+g6p + nadp  -> h + 6pgl + nadph ,G6PD,Pentose phosphate,"C00092, C00006","C00080, C01236, C00005",R00835,"1.1.1.49, 1.1.1.363"
+nadp + 6pgc <=> nadph + ru5p-D + h,PGD,Pentose phosphate,"C00006, C00345","C00005, C00199, C00080",R01528,"1.1.1.44, 1.1.1.351"
+6pgl  -> 6pgc ,PGL,Pentose phosphate,C01236,C00345,R02035,3.1.1.31
+r1p  <=> r5p ,PGM,Pentose phosphate,C00620,C00117,R01057,"5.4.2.2, 5.4.2.7"
+atp + r5p  <=> amp + prpp ,PRPS,Pentose phosphate,"C00002, C00117 ","C00020, C00119",R01049,2.7.6.1
+ru5p-D  <=> xu5p-D ,RPE,Pentose phosphate,C00199,C00231,R01529,5.1.3.1
+r5p  <=> ru5p-D ,RPI,Pentose phosphate,C00117,C00199,R01056,5.3.1.6
+g3p + s7p  <=> f6p + e4p ,TALDO,Pentose phosphate,"C00118, C05382","C00279, C00085",R08575,2.2.1.2
+r5p + xu5p-D  <=> g3p + s7p ,TKT,Pentose phosphate,"C00117, C00231","C00118, C05382",R01641,2.2.1.1
+xu5p-D + e4p  <=> f6p + g3p ,TKT,Pentose phosphate,"C00231, C00279","C00085, C00118",R01067,2.2.1.1
+cit  <=> icit ,ACO,TCA cycle,C00158,C00311,R01324,4.2.1.3
+oaa + pyr + nad -> cit + nadh + h,PDH+CS,TCA cycle,"C00036, C00022, C00003","C00158, C00004, C00080",R00351+R00209,"2.3.3.1, 2.3.3.3, 2.3.3.16, 1.2.4.1, 1.8.1.4, 2.3.1.12"
+fum  <=> mal-L ,FH,TCA cycle,C00122,C00149,R01082,4.2.1.2
+nad + icit  <=> nadh + akg + h,ICDH3,TCA cycle,"C00003, C00311","C00004, C00026, C00080",R00709,"1.1.1.41, 1.1.1.286"
+icit + nadp  <=> akg + nadph + h,ICDH1,TCA cycle,"C00311, C00006","C00026, C00005, C00080",R00267,1.1.1.42
+nad + mal-L  <=> nadh + oaa + h ,MDH,TCA cycle,"C00003, C00149","C00004, C00036, C00080",R00342,"1.1.1.37, 1.1.1.299"
+succ  <=> fum,SDH,TCA cycle,C00042,C00122,R02164,"1.3.5.1, 1.3.5.4"
+succ + atp + nadh + h <=> akg + nad + adp + pi,SUCL+OGDH,TCA cycle,"C00042, C00002, C00004, C00080","C00026, C00003, C00008, C00009",R00405+R00209,"6.2.1.4, 1.2.4.2, 1.8.1.4, 2.3.1.61"
+succ + gtp + nadh + h <=> akg + nad + gdp + pi,SUCL+OGDH,TCA cycle,"C00042, C00044, C00004, C00080","C00026, C00003, C00035, C00009",R00432+R00209,"6.2.1.5, 1.2.4.2, 1.8.1.4, 2.3.1.61"
+mal-L + nad <=> pyr + nadh + h,ME1,TCA cycle,"C00149, C00003","C00026, C00004, C00080",R00214,1.1.1.38
+mal-L + nadp <=> pyr + nadph + h,ME2,TCA cycle,"C00149, C00006","C00026, C00005, C00080",R00216,1.1.1.40
+oaa + gtp <=> pep + gdp,PCK,TCA cycle,"C00036, C00044","C00074, C00035",R00431,4.1.1.32
+pyr + atp -> oaa + adp + pi ,PC,TCA cycle,"C00022, C00002","C00036, C00008, C00009",R00344,6.4.1.1
+gln <=> glu,GLS,TCA cycle,C00064,C00025,R00256,3.5.1.2
+glu + nad <=> akg + nadh + h,GLUD,TCA cycle,"C00025, C00003","C00026, C00004, C00080",R00243,1.4.1.3
+glu + nadp <=> akg + nadph + h,GLUD,TCA cycle,"C00025, C00006","C00026, C00005, C00080",R00248,1.4.1.3
+pi + adp + 4*h  -> 3*h + atp ,HA,Oxidative Phosphorylation,"C00009, C00008, C00080","C00080, C00002",R00086,3.6.3.14
+nadh + 5*h  -> nad + 4*h ,ND,Oxidative Phosphorylation,"C00004, C00080","C00003, C00080",R02163,1.6.5.3
+2*gsh -> gssg,GPX,Oxidative stress,C00051,C00127,R00274,1.11.1.9
+gssg + nadph + h -> 2*gsh + nadp,GSR,Oxidative stress,"C00127, C00005, C00080","C00051, C00006",R00115,1.8.1.7
+ -> g1p,EX_g1p,Exchange,,C00103,,
+ <=> gln,EX_gln,Exchange,,C00064,,
+ <=> nadp ,EX_nadp,Exchange,,C00006,,
+ <=> nadph ,EX_nadph,Exchange,,C00005,,
+ -> adp,EX_adp,Exchange,,C00008,,
+ <=> amp ,EX_amp,Exchange,,C00020,,
+ nad -> ,EX_nad,Exchange,C00003,,,
+ -> nadh ,EX_nadh,Exchange,,C00004,,
+ <=> pi ,EX_pi,Exchange,,C00009,,
+ <=> h ,EX_h,Exchange,,C00080,,
+ <=> gdp ,EX_gdp,Exchange,,C00035,,
+ <=> gtp ,EX_gtp,Exchange,,C00044,,
+ <=> gsh,EX_gsh,Exchange,,C00051,,
+atp ->,EX_atp,Exchange,C00002,,,
+lac-L <=>,EX_lac,Exchange,C00186,,,
