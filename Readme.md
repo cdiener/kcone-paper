@@ -26,6 +26,8 @@ This repository provides the following input files:
   compound and [HMDB](http://hmdb.ca) IDs (id_map.csv)
 - a list of 58 microrray samples from the [GEO](http://www.ncbi.nlm.nih.gov/geo/)
   database annotated with the corresponding cell line (ge_samples.csv)
+- the model in dycone's CSV format (reactions.csv)
+- the model in SBML format (cemet.xml)
   
 Additionally, upon first run we will generate some intermediate data files that 
 include results for the most time consuming steps in the analysis. This way the 
