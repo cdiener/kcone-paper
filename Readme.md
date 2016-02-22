@@ -44,8 +44,8 @@ paper as [Inkscape](https://inkscape.org) SVGs in the images folder.
 ### Reproducing the paper
 
 In order create HTML and PDF outputs of the protocol follow the initial 
-[installation intructions](http://cdiener.github.io/kcone-paper) and render
-the entire Rmarkdown protocol with
+[installation intructions](http://cdiener.github.io/kcone-paper) (section 
+"Installation")and render the entire Rmarkdown protocol with
 
 ```bash
 Rscript -e "rmarkdown::render('protocol.Rmd', output_format='all')"
