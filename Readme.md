@@ -27,17 +27,17 @@ This repository provides the following input files:
 - a list of 58 microrray samples from the [GEO](http://www.ncbi.nlm.nih.gov/geo/)
   database annotated with the corresponding cell line (ge_samples.csv)
 - the model in dycone's CSV format (reactions.csv)
-- the model in SBML format (cemet.xml)
+- the model in SBML (L3V1) format (cemet.xml)
   
 Additionally, upon first run we will generate some intermediate data files that 
 include results for the most time consuming steps in the analysis. This way the 
-first run will take about 5h on a machine with 6+ cores, but repeated runs will 
+first run will take about 3h on a machine with 6+ cores, but repeated runs will 
 finish in about 4 minutes. The intermediate files cover the following protocol 
 steps:
 
 - web scraping of missing metabolite concentrations from HMDB (scraped_concs.Rd)
-- calculation of the polytope basis for the model (basis.Rd)
-- stability analysis for all of the 6 basis (stab.Rd)
+- calculation of the k-cone basis for the model (basis.Rd)
+- stability analysis for all of the 6 bases (stab.Rd)
 
 For the sake of completeness we also provide the pathway image we use in the
 paper as [Inkscape](https://inkscape.org) SVGs in the images folder. 

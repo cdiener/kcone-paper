@@ -16,7 +16,7 @@
     <fbc:listOfObjectives fbc:activeObjective="obj">
       <fbc:objective fbc:id="obj" fbc:type="maximize">
         <fbc:listOfFluxObjectives>
-          <fbc:fluxObjective fbc:reaction="r61" fbc:coefficient="1"/>
+          <fbc:fluxObjective fbc:reaction="r60" fbc:coefficient="1"/>
         </fbc:listOfFluxObjectives>
       </fbc:objective>
     </fbc:listOfObjectives>
@@ -75,6 +75,8 @@
               <bqbiol:is xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
                 <rdf:Bag>
                   <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00197"/>
+                  <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00597"/>
+                  <rdf:li rdf:resource="http://identifiers.org/hmdb/HMDB60180"/>
                   <rdf:li rdf:resource="http://identifiers.org/hmdb/HMDB00807"/>
                 </rdf:Bag>
               </bqbiol:is>
@@ -174,20 +176,6 @@
                 <rdf:Bag>
                   <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00158"/>
                   <rdf:li rdf:resource="http://identifiers.org/hmdb/HMDB00094"/>
-                </rdf:Bag>
-              </bqbiol:is>
-            </rdf:Description>
-          </rdf:RDF>
-        </sbml:annotation>
-      </species>
-      <species boundaryCondition="false" constant="false" hasOnlySubstanceUnits="false" id="M_co2" name="M_co2" metaid="M_co2" initialConcentration="0" compartment="cell">
-        <sbml:annotation xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
-          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-            <rdf:Description rdf:about="#M_co2">
-              <bqbiol:is xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
-                <rdf:Bag>
-                  <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00011"/>
-                  <rdf:li rdf:resource="http://identifiers.org/hmdb/HMDB01967"/>
                 </rdf:Bag>
               </bqbiol:is>
             </rdf:Description>
@@ -390,20 +378,6 @@
           </rdf:RDF>
         </sbml:annotation>
       </species>
-      <species boundaryCondition="false" constant="false" hasOnlySubstanceUnits="false" id="M_h" name="M_h" metaid="M_h" initialConcentration="0" compartment="cell">
-        <sbml:annotation xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
-          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-            <rdf:Description rdf:about="#M_h">
-              <bqbiol:is xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
-                <rdf:Bag>
-                  <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00080"/>
-                  <rdf:li rdf:resource="http://identifiers.org/hmdb/HMDB59597"/>
-                </rdf:Bag>
-              </bqbiol:is>
-            </rdf:Description>
-          </rdf:RDF>
-        </sbml:annotation>
-      </species>
       <species boundaryCondition="false" constant="false" hasOnlySubstanceUnits="false" id="M_icit" name="M_icit" metaid="M_icit" initialConcentration="0" compartment="cell">
         <sbml:annotation xmlns:sbml="http://www.sbml.org/sbml/level3/version1/core">
           <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -537,8 +511,8 @@
               <bqbiol:is xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
                 <rdf:Bag>
                   <rdf:li rdf:resource="http://identifiers.org/kegg.compound/C00009"/>
-                  <rdf:li rdf:resource="http://identifiers.org/hmdb/HMDB02142"/>
                   <rdf:li rdf:resource="http://identifiers.org/hmdb/HMDB01429"/>
+                  <rdf:li rdf:resource="http://identifiers.org/hmdb/HMDB02142"/>
                 </rdf:Bag>
               </bqbiol:is>
             </rdf:Description>
@@ -784,7 +758,6 @@
         </listOfReactants>
         <listOfProducts>
           <speciesReference constant="true" species="M_13dpg" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
@@ -847,7 +820,6 @@
           <speciesReference constant="true" species="M_13dpg" stoichiometry="1.000000"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_pi" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_3pg" stoichiometry="1.000000"/>
         </listOfProducts>
@@ -976,7 +948,6 @@
           <speciesReference constant="true" species="M_lac_L" stoichiometry="1.000000"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_pyr" stoichiometry="1.000000"/>
         </listOfProducts>
@@ -1000,7 +971,6 @@
           <speciesReference constant="true" species="M_nadp" stoichiometry="1.000000"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_6pgl" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadph" stoichiometry="1.000000"/>
         </listOfProducts>
@@ -1026,7 +996,6 @@
         <listOfProducts>
           <speciesReference constant="true" species="M_nadph" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_ru5p_D" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r18" reversible="false" fbc:lowerFluxBound="zero_bound" fbc:upperFluxBound="default_upper">
@@ -1245,7 +1214,6 @@
         <listOfProducts>
           <speciesReference constant="true" species="M_cit" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r28" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
@@ -1289,7 +1257,6 @@
         <listOfProducts>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_akg" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r30" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
@@ -1312,7 +1279,6 @@
         <listOfProducts>
           <speciesReference constant="true" species="M_akg" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadph" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r31" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
@@ -1336,7 +1302,6 @@
         <listOfProducts>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_oaa" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r32" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
@@ -1381,7 +1346,6 @@
           <speciesReference constant="true" species="M_succ" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_atp" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference constant="true" species="M_akg" stoichiometry="1.000000"/>
@@ -1411,7 +1375,6 @@
           <speciesReference constant="true" species="M_succ" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_gtp" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference constant="true" species="M_akg" stoichiometry="1.000000"/>
@@ -1440,7 +1403,6 @@
         <listOfProducts>
           <speciesReference constant="true" species="M_pyr" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r36" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
@@ -1463,7 +1425,6 @@
         <listOfProducts>
           <speciesReference constant="true" species="M_pyr" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadph" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r37" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
@@ -1551,7 +1512,6 @@
         <listOfProducts>
           <speciesReference constant="true" species="M_akg" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r41" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
@@ -1574,7 +1534,6 @@
         <listOfProducts>
           <speciesReference constant="true" species="M_akg" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadph" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r42" reversible="false" fbc:lowerFluxBound="zero_bound" fbc:upperFluxBound="default_upper">
@@ -1593,10 +1552,8 @@
         <listOfReactants>
           <speciesReference constant="true" species="M_pi" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_adp" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="4.000000"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference constant="true" species="M_h" stoichiometry="3.000000"/>
           <speciesReference constant="true" species="M_atp" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
@@ -1615,11 +1572,9 @@
         </sbml:annotation>
         <listOfReactants>
           <speciesReference constant="true" species="M_nadh" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="5.000000"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference constant="true" species="M_nad" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="4.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r44" reversible="false" fbc:lowerFluxBound="zero_bound" fbc:upperFluxBound="default_upper">
@@ -1658,7 +1613,6 @@
         <listOfReactants>
           <speciesReference constant="true" species="M_gssg" stoichiometry="1.000000"/>
           <speciesReference constant="true" species="M_nadph" stoichiometry="1.000000"/>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
         </listOfReactants>
         <listOfProducts>
           <speciesReference constant="true" species="M_gsh" stoichiometry="2.000000"/>
@@ -1712,35 +1666,30 @@
       </reaction>
       <reaction fast="false" id="r55" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
         <listOfProducts>
-          <speciesReference constant="true" species="M_h" stoichiometry="1.000000"/>
+          <speciesReference constant="true" species="M_gdp" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r56" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
         <listOfProducts>
-          <speciesReference constant="true" species="M_gdp" stoichiometry="1.000000"/>
+          <speciesReference constant="true" species="M_gtp" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
       <reaction fast="false" id="r57" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
         <listOfProducts>
-          <speciesReference constant="true" species="M_gtp" stoichiometry="1.000000"/>
-        </listOfProducts>
-      </reaction>
-      <reaction fast="false" id="r58" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
-        <listOfProducts>
           <speciesReference constant="true" species="M_gsh" stoichiometry="1.000000"/>
         </listOfProducts>
       </reaction>
-      <reaction fast="false" id="r59" reversible="false" fbc:lowerFluxBound="zero_bound" fbc:upperFluxBound="default_upper">
+      <reaction fast="false" id="r58" reversible="false" fbc:lowerFluxBound="zero_bound" fbc:upperFluxBound="default_upper">
         <listOfReactants>
           <speciesReference constant="true" species="M_atp" stoichiometry="1.000000"/>
         </listOfReactants>
       </reaction>
-      <reaction fast="false" id="r60" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
+      <reaction fast="false" id="r59" reversible="true" fbc:lowerFluxBound="default_lower" fbc:upperFluxBound="default_upper">
         <listOfReactants>
           <speciesReference constant="true" species="M_lac_L" stoichiometry="1.000000"/>
         </listOfReactants>
       </reaction>
-      <reaction fast="false" id="r61" reversible="false" fbc:lowerFluxBound="zero_bound" fbc:upperFluxBound="default_upper">
+      <reaction fast="false" id="r60" reversible="false" fbc:lowerFluxBound="zero_bound" fbc:upperFluxBound="default_upper">
         <listOfReactants>
           <speciesReference constant="true" species="M_atp" stoichiometry="20.704500"/>
           <speciesReference constant="true" species="M_prpp" stoichiometry="0.053446"/>

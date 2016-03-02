@@ -7,7 +7,6 @@
 
 start_t <- proc.time()
 
-PH <- 7.34  # intracellular pH
 VOL <- 1.54e-12  # cell volume in L
 NC <- 1e6  # number of cells in each sample
 C_UNIT_M <- 1e-12  # concentration unit measured (picomolar)
@@ -18,27 +17,19 @@ d_idx <- 5:10  # columns where data entries start in the original data file
 
 #library(dycone)
 devtools::load_all("~/code/dycone")
-id_map <- read.csv("id_map.csv")
 
+id_map <- read.csv("id_map.csv", stringsAsFactors=FALSE)
 r <- read_reactions("reactions.csv")
 metab <- read.csv("metabolome.csv")
 # convert to uM concentrations
 metab[, d_idx] <- C_UNIT_M / C_UNIT_U * metab[, d_idx]/(NC * VOL)
 
-subs <- cbind(rp(r, "S"), rp(r, "KEGG_substrates")[, 2])
-prods <- cbind(rp(r, "P"), rp(r, "KEGG_products")[, 2])
-names(subs) <- names(prods) <- c("idx", "name", "keggid")
-spec <- c(subs$name, prods$name)
-names(spec) <- c(as.character(subs$keggid), as.character(prods$keggid))
-spec <- spec[!duplicated(spec)]
-
-matches <- sapply(names(spec), grep_or_na, x = metab$kegg_id)
+matches <- sapply(id_map$kegg, grep_id, x = metab$kegg_id)
 miss <- is.na(matches)
-kegg_missing <- names(spec)[miss]
 
 # Assemble complete data set
 
-full <- data.frame(kegg = names(spec), name = spec)
+full <- id_map[, 1:2]
 m <- matrix(NA, nrow = nrow(full), ncol = length(d_idx))
 colnames(m) <- names(metab)[d_idx]
 full <- cbind(full, m)
@@ -49,22 +40,29 @@ full[matched_idx, 3:8] <- metab[matches[matched_idx], d_idx]
     concs <- hmdb_concentration(id_map$hmdb, add = id_map[, 1:2])
 } %c% "scraped_concs.Rd"
 
-m_concs <- as.vector(by(concs, concs$kegg_revised, priority_mean))
-names(m_concs) <- levels(id_map$kegg_revised)
-# Based on pH in uM
-m_concs["C00080"] <- 10^(-7.34 + 6)
+m_concs <- as.vector(by(concs, concs$name, priority_mean))
+names(m_concs) <- levels(factor(concs$name))
 
 # Patching
-scraped <- data.frame(kegg = names(m_concs), normal = m_concs)
+scraped <- data.frame(name = names(m_concs), normal = m_concs)
 rownames(scraped) <- NULL
 patched <- patch(full, id = 1, normal = 3:5, treatment = 6:8, ref_data = scraped)
 
 # Get basis
-S <- stochiometry(r)
-mats <- ma_terms(S, patched[, 2:8])
+S <- stoichiometry(r)
+mats <- ma_terms(S, patched[, c(1, 3:8)])
+
+# Get missing fraction
+Smod <- t((S[id_map$name, ] > 0) + 0)
+n_miss <- Smod %*% miss
+n_measured <- Smod %*% !miss
+write(sprintf("%d reactions missing at least one metabolite", sum(n_miss > 0)),
+    file="log.txt")
+write(sprintf("%d reactions having at least one measured metabolite\n", sum(n_measured > 0)), 
+    file="log.txt", append=T)
 
 {
-    V <- polytope_basis(S, rep(1, ncol(S)))
+    V <- polytope_basis(S)
 } %c% "basis.Rd"
 
 library(doParallel)
@@ -76,7 +74,7 @@ prolif <- c(atp = -20.7045, prpp = -0.053446, pyr = -0.50563, oaa = -0.35261,
 
 # Generate hypothesis
 h <- hyp(mats[, 1:3], mats[, 4:6], r, type = "fva", 
-	obj = prolif, v_min = 1e-6, full = T)
+	obj = prolif, v_min = 1e-12, full = T)
 pw <- rp(make_irreversible(r), "pathway")[,2]
 r_ids <- rp(make_irreversible(r), "KEGG_reaction")[,2]
 h$hyp <- cbind(h$hyp, pathway = pw[h$hyp$idx])
@@ -87,7 +85,7 @@ write.csv(h$hyp, file = "regulatory_bias.csv", quote = F, row.names = F)
 ho <- h$hyp[order(h$hyp$idx), ]
 ro <- r_order(make_irreversible(r))
 write(sprintf("Bias correlation\nlog-fold: %g\npval: %g\n", cor(ro, abs(ho$mean_log_fold)), 
-    cor(ro, ho$pval)), file = "log.txt")
+    cor(ro, ho$pval)), file = "log.txt", append=T)
 
 # Stability analysis
 {
@@ -144,7 +142,7 @@ library(pheatmap)
 comb <- expand.grid(a = 1:3, b = 4:6)
 mlfc <- apply(metab[, 5:10], 1, function(m) log(m[comb$b], 2) - log(m[comb$a], 2))
 colnames(mlfc) <- as.character(metab$name)
-mlfc <- gather(data.frame(mlfc, check.names = F), name, lfc)
+mlfc <- gather(data.frame(mlfc, check.names = F), name, lfc, factor_key=T)
 metab_plot <- ggplot(mlfc, aes(x = name, y = lfc)) + geom_boxplot() + theme_bw() + 
 	theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + 
 	xlab("") + ylab("log-fold change")
@@ -184,7 +182,7 @@ lines(x, pnorm(x, mean(log_hela, na.rm = T), sd(log_hela, na.rm = T)), lwd = 2,
 dev.off()
 
 
-# Plot k-cones
+# Plots
 write("Preparing k-cones...", file="")
 K <- lapply(1:6, function(i) kcone(V, mats[, i]))
 combs <- expand.grid(4:6, 1:3)
@@ -192,38 +190,37 @@ lfcs <- apply(combs, 1, function(i) log(mats[, i[2]], 2) - log(mats[, i[1]], 2))
 large <- abs(rowMeans(lfcs)) > 1 
 K_subset <- lapply(K, function(ki) ki[large, ])
 
-rn = rp(make_irreversible(r), "abbreviation")[,2]
-png("red_all.png", width = 6, height = 6, units = "in", res = 600, type = "cairo", 
-    antialias = "subpixel")
+rn <- rp(make_irreversible(r), "abbreviation")[,2]
+png("red_all.png", width = 6, height = 6, units = "in", res = 600)
 write("All:", file = "log.txt", append = T)
-par(mgp = c(1.75, 0.6, 0))
-m <- capture.output(plot_red(K, col = c(rep("blue", 3), rep("tomato2", 3)), 
+par(mgp = c(1.75, 0.6, 0), cex.lab=1.25)
+m <- capture.output(plot_red(K, col = rep(c("blue", "tomato2"), each=3), 
 	r_names = rn))
 write(m, file = "log.txt", append = T)
 dev.off()
 
-png("red_sig.png", width = 6, height = 6, units = "in", res = 600, type = "cairo", 
-    antialias = "subpixel")
+png("red_sig.png", width = 6, height = 6, units = "in", res = 600)
 write("\ncutoff:", file = "log.txt", append = T)
-par(mgp = c(1.75, 0.6, 0))
-m <- capture.output(plot_red(K_subset, col = c(rep("blue", 3), rep("tomato2", 
-    3)), r_names = rn[large]))
+par(mgp = c(1.75, 0.6, 0), cex.lab=1.25)
+m <- capture.output(plot_red(K_subset, col = rep(c("blue", "tomato2"), each=3), 
+    r_names = rn[large]))
 write(m, file = "log.txt", append = T)
 dev.off()
 
 write("Plotting stability...", file="")
 stab_plot <- ggplot(stab, aes(x = what, fill = cell_line, group = basis_idx)) + 
-    stat_bin(position = "dodge", col = "black") + theme_bw() + 
+    stat_count(position = "dodge", col = "black") + theme_bw() + 
     scale_fill_manual(values = c("royalblue", "red3")) + 
     theme(legend.position = c(0.75, 0.75))
-ggsave(stab_plot, file = "stab.svg", width = 3, height = 5)
+ggsave(stab_plot, file = "stab.svg", width = 4, height = 4)
 
 write("Plotting heterogeneity and correlations...", file="")
 sd_plot <- ggplot(h$hyp, aes(x = sd_normal, y = sd_disease, col = pathway)) + 
     geom_polygon(data = data.frame(x = c(0, 9, 9), y = c(0, 3, 27)), 
-    aes(x = x, y = y), fill = "blue", alpha = 0.1, col = NA) + geom_point() + 
+    aes(x = x, y = y), fill = "blue", alpha = 0.1, col = NA) + 
+    geom_abline(colour="blue", alpha=0.75) + geom_point() + 
     theme_bw() + coord_cartesian(xlim = c(-0.1, 2), ylim = c(-0.1, 2)) + 
-    xlab(expression(HaCaT ~ sigma)) + ylab(expression(HeLa ~ sigma))
+    xlab(expression(HaCaT/HaCaT ~ sigma)) + ylab(expression(HeLa/HaCaT ~ sigma))
 ggsave(sd_plot, file = "sds.svg", width = 5.5, height = 3)
 
 fc_sd <- h$hyp$sd_disease/h$hyp$sd_normal
@@ -232,13 +229,15 @@ type <- paste0(h$hyp$name[sig], " (", h$hyp$type[sig], ")")
 d <- cor(t(h$lfc_disease[h$hyp$idx[sig], ]))
 pheatmap(d, col = dycone:::DC_DIVCOL(101), breaks = seq(-1, 1, length.out = 102), 
     cellwidth = 10, cellheight = 10, labels_row = type, labels_col = type,
-    filename = "cors.pdf", width = 4, height = 4)
+    filename = "cors.pdf", height = 4, width = 4)
 
 write("Plotting pathways...", file="")
 pathway_plot <- ggplot(h$hyp, aes(y = pathway, x = mean_log_fold, col = pathway)) + 
-    geom_vline(x = 0, linetype = "dashed") + geom_point(aes(shape = abs(mean_log_fold) > fva_log_fold), 
+    geom_vline(xintercept = 0, linetype = "dashed") + 
+    geom_point(aes(shape = abs(mean_log_fold) > fva_log_fold), 
     position = position_jitter(height = 0.2), size = 3) + theme_bw() + 
-    theme(legend.position = "none") + xlab("mean log-fold change") + ylab("")
+    scale_shape_manual(values = c(1, 17)) + theme(legend.position = "none") + 
+    xlab("mean log-fold change") + ylab("")
 ggsave(pathway_plot, file = "pathways.svg", width = 6, height = 4)
 
 write("Plotting expression vs. enzyme activity...", file="")
@@ -246,9 +245,9 @@ info$significant <- info$ge_pval<0.05 & info$met_pval<0.05
 explot <- ggplot(info, aes(x=ge_lfc, y=met_lfc, color=pathway, shape=significant)) + 
     geom_hline(yintercept=0, linetype="dashed") + 
     geom_vline(xintercept=0, linetype="dashed") + geom_point() + 
-    theme_bw() + theme(legend.position="none") + xlab("gene expression") + 
-    scale_color_discrete(drop=FALSE) + ylab("metabolome")
-ggsave(explot, file = "gene_ex.svg", width=3.5, height=3)
+    theme_bw() + xlab("gene expression") + scale_color_discrete(drop=FALSE) + 
+    ylab("metabolome")
+ggsave(explot, file = "gene_ex.svg", width=6, height=3)
 
 write("----------\nUsed time:\n----------", file = "")
 print(proc.time() - start_t) 
