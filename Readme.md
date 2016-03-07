@@ -3,8 +3,8 @@
 
 ## Materials and Protocol for the k-cone paper
 
-The manuscript has been submitted as:
-"The space of enzyme regulation in HeLa cells can be inferred from its intracellular metabolome"
+The manuscript has been submitted as:  
+"The space of enzyme regulation in HeLa cells can be inferred from its intracellular metabolome"  
 Christian Diener, Felipe Muñoz-Gonzalez, Sergio Encarnación, Osbaldo Resendis-Antonio
 
 This repository contains all materials in order
