@@ -3,7 +3,11 @@
 
 ## Materials and Protocol for the k-cone paper
 
-Full citation still pending. This repository contains all materials in order
+The manuscript has been submitted as:
+"The space of enzyme regulation in HeLa cells can be inferred from its intracellular metabolome"
+Christian Diener, Felipe Muñoz-Gonzalez, Sergio Encarnación, Osbaldo Resendis-Antonio
+
+This repository contains all materials in order
 to reproduce *all* results from our publication. You can either create a detailed
 computational protocol from an [Rmarkdown](http://rmarkdown.rstudio.com/) file
 or just run an [R](http://r-project.org) script to reproduce the results.
