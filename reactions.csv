@@ -1,60 +1,60 @@
-Reaction,abbreviation,pathway,KEGG_reaction,KEGG_enzyme
-13dpg <=> 23dpg,BPGM,Glycolysis,R01662,"5.4.2.4, 5.4.2.11"
-23dpg  -> 3pg + pi,BPGM,Glycolysis,R01516,3.1.3.13
-2pg  <=> pep ,ENO,Glycolysis,R00658,4.2.1.11
-fdp  <=> dhap + g3p ,ALDO,Glycolysis,R01068,4.1.2.13
-fdp -> f6p + pi ,FBP,Glycolysis,R00762,3.1.3.11
-g3p + nad + pi  <=> 13dpg + nadh ,GAPDH,Glycolysis,R01061,"1.2.1.12, 1.2.1.59"
-atp + f6p  -> adp + fdp,PFK,Glycolysis,R00756,2.7.1.11
-g6p  <=> f6p ,GPI,Glycolysis,R00771,5.3.1.9
-13dpg -> pi + 3pg,ACYP,Glycolysis,R01515,3.6.1.7
-3pg + atp <=> 13dpg + adp ,PGK,Glycolysis,R01512,2.7.2.3
-2pg  <=> 3pg ,PGAM,Glycolysis,R01518,"5.4.2.11, 5.4.2.12"
-g1p  <=> g6p ,PGM,Glycolysis,R08639,"5.4.2.2, 5.4.2.5"
-adp + pep -> atp + pyr ,PKM,Glycolysis,R00200,2.7.1.40
-dhap  <=> g3p ,TPI,Glycolysis,R01025,5.3.1.1
-nad + lac-L <=> nadh + pyr,LDH,Glycolysis,R00703,1.1.1.27
-g6p + nadp  -> 6pgl + nadph ,G6PD,Pentose phosphate,R00835,"1.1.1.49, 1.1.1.363"
-nadp + 6pgc <=> nadph + ru5p-D,PGD,Pentose phosphate,R01528,"1.1.1.44, 1.1.1.351"
-6pgl  -> 6pgc ,PGL,Pentose phosphate,R02035,3.1.1.31
-r1p  <=> r5p ,PGM,Pentose phosphate,R01057,"5.4.2.2, 5.4.2.7"
-atp + r5p  <=> amp + prpp ,PRPS,Pentose phosphate,R01049,2.7.6.1
-ru5p-D  <=> xu5p-D ,RPE,Pentose phosphate,R01529,5.1.3.1
-r5p  <=> ru5p-D ,RPI,Pentose phosphate,R01056,5.3.1.6
-g3p + s7p  <=> f6p + e4p ,TALDO,Pentose phosphate,R08575,2.2.1.2
-r5p + xu5p-D  <=> g3p + s7p ,TKT,Pentose phosphate,R01641,2.2.1.1
-xu5p-D + e4p  <=> f6p + g3p ,TKT,Pentose phosphate,R01067,2.2.1.1
-cit  <=> icit ,ACO,TCA cycle,R01324,4.2.1.3
-oaa + pyr + nad -> cit + nadh,PDH+CS,TCA cycle,"R00351, R00209","2.3.3.1, 2.3.3.3, 2.3.3.16, 1.2.4.1, 1.8.1.4, 2.3.1.12"
-fum  <=> mal-L ,FH,TCA cycle,R01082,4.2.1.2
-nad + icit  <=> nadh + akg,ICDH3,TCA cycle,R00709,"1.1.1.41, 1.1.1.286"
-icit + nadp  <=> akg + nadph,ICDH1,TCA cycle,R00267,1.1.1.42
-nad + mal-L  <=> nadh + oaa,MDH,TCA cycle,R00342,"1.1.1.37, 1.1.1.299"
-succ  <=> fum,SDH,TCA cycle,R02164,"1.3.5.1, 1.3.5.4"
-succ + atp + nadh <=> akg + nad + adp + pi,SUCL+OGDH,TCA cycle,"R00405, R00209","6.2.1.4, 1.2.4.2, 1.8.1.4, 2.3.1.61"
-succ + gtp + nadh <=> akg + nad + gdp + pi,SUCL+OGDH,TCA cycle,"R00432, R00209","6.2.1.5, 1.2.4.2, 1.8.1.4, 2.3.1.61"
-mal-L + nad <=> pyr + nadh,ME1,TCA cycle,R00214,1.1.1.38
-mal-L + nadp <=> pyr + nadph,ME2,TCA cycle,R00216,1.1.1.40
-oaa + gtp <=> pep + gdp,PCK,TCA cycle,R00431,4.1.1.32
-pyr + atp -> oaa + adp + pi ,PC,TCA cycle,R00344,6.4.1.1
-gln <=> glu,GLS,TCA cycle,R00256,3.5.1.2
-glu + nad <=> akg + nadh,GLUD,TCA cycle,R00243,1.4.1.3
-glu + nadp <=> akg + nadph,GLUD,TCA cycle,R00248,1.4.1.3
-pi + adp  -> atp ,HA,Oxidative Phosphorylation,R00086,3.6.3.14
-nadh -> nad,ND,Oxidative Phosphorylation,R02163,1.6.5.3
-2*gsh -> gssg,GPX,Oxidative stress,R00274,1.11.1.9
-gssg + nadph -> 2*gsh + nadp,GSR,Oxidative stress,R00115,1.8.1.7
- -> g1p,EX_g1p,Exchange,,
- <=> gln,EX_gln,Exchange,,
- <=> nadp ,EX_nadp,Exchange,,
- <=> nadph ,EX_nadph,Exchange,,
- -> adp,EX_adp,Exchange,,
- <=> amp ,EX_amp,Exchange,,
- nad -> ,EX_nad,Exchange,,
- -> nadh ,EX_nadh,Exchange,,
- <=> pi ,EX_pi,Exchange,,
- <=> gdp ,EX_gdp,Exchange,,
- <=> gtp ,EX_gtp,Exchange,,
- <=> gsh,EX_gsh,Exchange,,
-atp ->,EX_atp,Exchange,,
-lac-L <=>,EX_lac,Exchange,,
+Reaction,abbreviation,pathway,KEGG_reaction,KEGG_enzyme,Keq
+13dpg <=> 23dpg,BPGM,Glycolysis,R01662,"5.4.2.4, 5.4.2.11",7.30E+06
+23dpg  -> 3pg + pi,BPGM,Glycolysis,R01516,3.1.3.13,
+2pg  <=> pep ,ENO,Glycolysis,R00658,4.2.1.11,5.19
+fdp  <=> dhap + g3p ,ALDO,Glycolysis,R01068,4.1.2.13,2.40E-04
+fdp -> f6p + pi ,FBP,Glycolysis,R00762,3.1.3.11,
+g3p + nad + pi  <=> 13dpg + nadh ,GAPDH,Glycolysis,R01061,"1.2.1.12, 1.2.1.59",0.17
+atp + f6p  -> adp + fdp,PFK,Glycolysis,R00756,2.7.1.11,
+g6p  <=> f6p ,GPI,Glycolysis,R00771,5.3.1.9,0.362
+13dpg -> pi + 3pg,ACYP,Glycolysis,R01515,3.6.1.7,
+3pg + atp <=> 13dpg + adp ,PGK,Glycolysis,R01512,2.7.2.3,5.40E-04
+2pg  <=> 3pg ,PGAM,Glycolysis,R01518,"5.4.2.11, 5.4.2.12",
+g1p  <=> g6p ,PGM,Glycolysis,R08639,"5.4.2.2, 5.4.2.5",19.9
+adp + pep -> atp + pyr ,PKM,Glycolysis,R00200,2.7.1.40,
+dhap  <=> g3p ,TPI,Glycolysis,R01025,5.3.1.1,9.3
+nad + lac-L <=> nadh + pyr,LDH,Glycolysis,R00703,1.1.1.27,3.80E-05
+g6p + nadp  -> 6pgl + nadph ,G6PD,Pentose phosphate,R00835,"1.1.1.49, 1.1.1.363",
+nadp + 6pgc <=> nadph + ru5p-D,PGD,Pentose phosphate,R01528,"1.1.1.44, 1.1.1.351",0.0117
+6pgl  -> 6pgc ,PGL,Pentose phosphate,R02035,3.1.1.31,
+r1p  <=> r5p ,PGM,Pentose phosphate,R01057,"5.4.2.2, 5.4.2.7",111
+atp + r5p  <=> amp + prpp ,PRPS,Pentose phosphate,R01049,2.7.6.1,2.81
+ru5p-D  <=> xu5p-D ,RPE,Pentose phosphate,R01529,5.1.3.1,3.91
+r5p  <=> ru5p-D ,RPI,Pentose phosphate,R01056,5.3.1.6,0.444
+g3p + s7p  <=> f6p + e4p ,TALDO,Pentose phosphate,R08575,2.2.1.2,1.34
+r5p + xu5p-D  <=> g3p + s7p ,TKT,Pentose phosphate,R01641,2.2.1.1,4.64
+xu5p-D + e4p  <=> f6p + g3p ,TKT,Pentose phosphate,R01067,2.2.1.1,58.8
+cit  <=> icit ,ACO,TCA cycle,R01324,4.2.1.3,0.0458
+oaa + pyr + nad -> cit + nadh,PDH+CS,TCA cycle,"R00351, R00209","2.3.3.1, 2.3.3.3, 2.3.3.16, 1.2.4.1, 1.8.1.4, 2.3.1.12",
+fum  <=> mal-L ,FH,TCA cycle,R01082,4.2.1.2,0.249
+nad + icit  <=> nadh + akg,ICDH3,TCA cycle,R00709,"1.1.1.41, 1.1.1.286",0.106
+icit + nadp  <=> akg + nadph,ICDH1,TCA cycle,R00267,1.1.1.42,0.0823
+nad + mal-L  <=> nadh + oaa,MDH,TCA cycle,R00342,"1.1.1.37, 1.1.1.299",1.20E-05
+succ  <=> fum,SDH,TCA cycle,R02164,"1.3.5.1, 1.3.5.4",6.10E+03
+succ + atp + nadh <=> akg + nad + adp + pi,SUCL+OGDH,TCA cycle,"R00405, R00209","6.2.1.4, 1.2.4.2, 1.8.1.4, 2.3.1.61",
+succ + gtp + nadh <=> akg + nad + gdp + pi,SUCL+OGDH,TCA cycle,"R00432, R00209","6.2.1.5, 1.2.4.2, 1.8.1.4, 2.3.1.61",
+mal-L + nad <=> pyr + nadh,ME1,TCA cycle,R00214,1.1.1.38,5.20E-03
+mal-L + nadp <=> pyr + nadph,ME2,TCA cycle,R00216,1.1.1.40,4.10E-03
+oaa + gtp <=> pep + gdp,PCK,TCA cycle,R00431,4.1.1.32,4.80E-03
+pyr + atp -> oaa + adp + pi ,PC,TCA cycle,R00344,6.4.1.1,
+gln <=> glu,GLS,TCA cycle,R00256,3.5.1.2,110
+glu + nad <=> akg + nadh,GLUD,TCA cycle,R00243,1.4.1.3,6.40E-07
+glu + nadp <=> akg + nadph,GLUD,TCA cycle,R00248,1.4.1.3,5.00E-07
+pi + adp  -> atp ,HA,Oxidative Phosphorylation,R00086,3.6.3.14,
+nadh -> nad,ND,Oxidative Phosphorylation,R02163,1.6.5.3,
+2*gsh -> gssg,GPX,Oxidative stress,R00274,1.11.1.9,
+gssg + nadph -> 2*gsh + nadp,GSR,Oxidative stress,R00115,1.8.1.7,
+ -> g1p,EX_g1p,Exchange,,,
+ <=> gln,EX_gln,Exchange,,,
+ <=> nadp ,EX_nadp,Exchange,,,
+ <=> nadph ,EX_nadph,Exchange,,,
+ -> adp,EX_adp,Exchange,,,
+ <=> amp ,EX_amp,Exchange,,,
+ nad -> ,EX_nad,Exchange,,,
+ -> nadh ,EX_nadh,Exchange,,,
+ <=> pi ,EX_pi,Exchange,,,
+ <=> gdp ,EX_gdp,Exchange,,,
+ <=> gtp ,EX_gtp,Exchange,,,
+ <=> gsh,EX_gsh,Exchange,,,
+atp ->,EX_atp,Exchange,,,
+lac-L <=>,EX_lac,Exchange,,,
