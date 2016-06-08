@@ -1,9 +1,9 @@
-![paper status](https://img.shields.io/badge/paper-under_review-yellow.svg)
+![paper status](https://img.shields.io/badge/paper-acccepted-green.svg)
 [![protocol status](https://img.shields.io/badge/protocol-online-green.svg)](https://cdiener.github.io/kcone-paper)
 
 ## Materials and Protocol for the k-cone paper
 
-The manuscript has been submitted as:  
+The manuscript is accepted as:  
 "The space of enzyme regulation in HeLa cells can be inferred from its intracellular metabolome"  
 Christian Diener, Felipe Muñoz-Gonzalez, Sergio Encarnación, Osbaldo Resendis-Antonio
 
