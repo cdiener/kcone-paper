@@ -1,4 +1,4 @@
-![paper status](https://img.shields.io/badge/paper-acccepted-green.svg)
+[![paper status](https://img.shields.io/badge/paper-published-green.svg)](http://www.nature.com/articles/srep28415) 
 [![protocol status](https://img.shields.io/badge/protocol-online-green.svg)](https://cdiener.github.io/kcone-paper)
 
 ## Materials and Protocol for the k-cone paper
@@ -14,11 +14,12 @@ or just run an [R](http://r-project.org) script to reproduce the results.
 
 The output can be found at https://cdiener.github.io/kcone-paper.
 
-The publication is currently under review, and the results will be citeable upon
-acceptance. 
-
 For the source code of the `dycone` package please see 
 https://github.com/cdiener/dycone.
+
+### Citation
+
+Please use the following paper: http://www.ncbi.nlm.nih.gov/pubmed/27335086.
 
 ### Overview of the provided files
 
