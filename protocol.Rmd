@@ -30,7 +30,7 @@ be installed via
 
 ```{bash eval=FALSE}
 sudo apt-get install libxml2-dev libcurl4-openssl-dev libssl-dev libgmp-dev
-```  
+```
 
 Most of the actual analysis is implemented in the `dycone` R package. It can be
 installed using devtools in the following manner. We will also install all
@@ -359,7 +359,8 @@ also use the `full` option to obtain the raw log-fold changes and append some
 additional annotations to the result using the `rp` function.
 
 ```{r}
-h <- hyp(mats[, 1:3], mats[, 4:6], r, full = T)
+samples <- rep(c("normal", "disease"), each=3)
+h <- hyp(r, samples, mats, full = T)
 pw <- rp(make_irreversible(r), "pathway")[,2]
 r_ids <- rp(make_irreversible(r), "KEGG_reaction")[,2]
 h$hyp <- cbind(h$hyp, pathway = pw[h$hyp$idx])
@@ -420,7 +421,7 @@ will save the complete results in `EDAs.csv`.
 
 ```{r}
 # Generate hypothesis
-h <- hyp(mats[, 1:3], mats[, 4:6], r, type = "fva", obj = prolif, full = T)
+h <- hyp(r, samples, mats, type = "fva", obj = prolif, full = T)
 pw <- rp(make_irreversible(r), "pathway")[,2]
 r_ids <- rp(make_irreversible(r), "KEGG_reaction")[,2]
 h$hyp <- cbind(h$hyp, pathway = pw[h$hyp$idx])
@@ -432,9 +433,9 @@ a pathway level and mark reactions whose expected differential activity
 log-fold changes can not be explained by flux variability.
 
 ```{r}
-ggplot(h$hyp, aes(y = pathway, x = mean_log_fold, col = pathway)) +
+ggplot(h$hyp, aes(y = pathway, x = k_lfc, col = pathway)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(aes(shape = abs(mean_log_fold) > fva_log_fold),
+    geom_point(aes(shape = abs(k_lfc) > fva_log_fold),
     position = position_jitter(height = 0.2), size = 3) + scale_shape_manual(values = c(1, 17)) +
     theme_bw() + theme(legend.position = "none") + xlab("mean log-fold change") + ylab("")
 ```
@@ -463,7 +464,7 @@ pheatmap(t(x[h$hyp$idx, ]), breaks = seq(-m, m, length.out = 102), col = dycone:
 We can also identify significantly altered reactions which are essential directly.
 
 ```{r}
-essential <- abs(h$hyp$mean_log_fold) > h$hyp$fva_log_fold
+essential <- abs(h$hyp$k_lfc) > h$hyp$fva_log_fold
 h$hyp[h$hyp$corr_pval < 0.05 & essential, ]
 ```
 
@@ -653,7 +654,7 @@ the EDAs.
 
 ```{r}
 info <- info %>% group_by(r_idx) %>% mutate(met_lfc =
-    h$hyp$mean_log_fold[h$hyp$idx %in% r_idx], met_pval =
+    h$hyp$k_lfc[h$hyp$idx %in% r_idx], met_pval =
     h$hyp$corr_pval[h$hyp$idx %in% r_idx], pathway =
     h$hyp$pathway[h$hyp$idx %in% r_idx])
 ```
@@ -671,7 +672,7 @@ get_ma_lfc <- function(eid) {
 }
 
 ge <- lapply(info$ENTREZID, get_ma_lfc)
-info <- cbind(info, do.call(rbind, ge))
+info <- bind_cols(info, do.call(rbind, ge))
 write.csv(info, "all_lfcs.csv")
 ```
 
